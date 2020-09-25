@@ -3,7 +3,9 @@ SHELL _HIDE "dir /b *.bas>filenames.txt"
 OPEN "filenames.txt" FOR INPUT AS #1
 OPEN "MetaData.csv" FOR OUTPUT AS #3
 
-PRINT #3, "Name, lines, source, comment lines, total comments, empty lines"
+PRINT #3, "Name, lines, source, comment lines, empty lines, total comments, , source %, line comment %, empty line %, % lines commented"
+
+outFormat$ = "& _, & _, & _, & _, & _, & _,_, ##.#_%_, ##.#_%_, ##.#_%_, ##.#_%"
 
 DO
   LINE INPUT #1, filename$
@@ -31,10 +33,19 @@ DO
     END IF
   LOOP UNTIL EOF(2)
   CLOSE #2
-  PRINT #3, filename$; ", "; lines; ", "; sourceLines; ", "; commentLines; ", "; comments; ", "; emptyLines
-  PRINT filename$; ", "; lines; ", "; sourceLines; ", "; commentLines; ", "; comments; ", "; emptyLines
+  totalcomments = totalcomments + comments
+  totalcommentLines = totalcommentLines + commentLines
+  totalsourceLines = totalsourceLines + sourceLines
+  totallines = totallines + lines
+  totalemptyLines = totalemptyLines + emptyLines
+  PRINT USING outFormat$; filename$; STR$(lines); STR$(sourceLines); STR$(commentLines); STR$(comments); STR$(emptyLines); 100 * sourceLines / lines; 100 * commentLines / lines; 100 * emptyLines / lines; 100 * comments / lines
+  PRINT #3, USING outFormat$; filename$; STR$(lines); STR$(sourceLines); STR$(commentLines); STR$(comments); STR$(emptyLines); 100 * sourceLines / lines; 100 * commentLines / lines; 100 * emptyLines / lines; 100 * comments / lines
 LOOP UNTIL EOF(1)
 
 CLOSE #1
 
-PRINT filename$, lines, sourceLines, commentLines
+PRINT #3, USING outFormat$; "Totals: "; STR$(totallines); STR$(totalsourceLines); STR$(totalcommentLines); STR$(totalemptyLines); STR$(totalcomments); 100 * totalsourceLines / totallines; 100 * totalcommentLines / totallines; 100 * totalemptyLines / totallines; 100 * totalcomments / totallines
+
+CLOSE #3
+
+SYSTEM
